@@ -46,14 +46,14 @@ RUN set -ex; \
     elif [ "$TARGETARCH" = "arm64" ]; then OPENLIST_ARCH="arm64"; \
     else echo "Unsupported arch: $TARGETARCH" && exit 1; fi; \
     if [ "$OPENLIST_VERSION" = "latest" ]; then \
-    OPENLIST_URL="https://github.com/openListGo/openlist/releases/latest/download/openlist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
+    OPENLIST_URL="https://github.com/AlistGo/alist/releases/latest/download/alist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
     else \
-    OPENLIST_URL="https://github.com/openListGo/openlist/releases/download/${OPENLIST_VERSION}/openlist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
+    OPENLIST_URL="https://github.com/AlistGo/alist/releases/download/${OPENLIST_VERSION}/alist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
     fi; \
     echo "Downloading openList ($OPENLIST_ARCH) from: $OPENLIST_URL"; \
     curl -fsSL "$OPENLIST_URL" -o /tmp/openlist.tar.gz && \
     tar -xzf /tmp/openlist.tar.gz -C /tmp/ && \
-    mv /tmp/openlist /app/openlist && \
+    mv /tmp/alist /app/openlist && \
     chmod +x /app/openlist && \
     rm -f /tmp/openlist.tar.gz
 
