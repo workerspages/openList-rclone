@@ -568,7 +568,7 @@ async function bootstrap() {
     if (!fs.existsSync(openlistPath)) {
         console.log(`[Init] Downloading openList (${arch})...`);
         try {
-            const openlistUrl = `https://github.com/openListGo/openlist/releases/latest/download/openlist-linux-musl-${arch}.tar.gz`;
+            const openlistUrl = `https://github.com/OpenListTeam/OpenList/releases/latest/download/openlist-linux-musl-${arch}.tar.gz`;
             execSync(`curl -fsSL "${openlistUrl}" -o openlist.tar.gz`, { stdio: 'inherit' });
             execSync(`tar -xzf openlist.tar.gz -C "${BIN_DIR}"`);
             execSync(`chmod +x "${openlistPath}"`);
