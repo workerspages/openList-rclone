@@ -1,7 +1,7 @@
 {
-  "name": "alist-rclone-paas",
+  "name": "openlist-rclone-paas",
   "version": "1.0.0",
-  "description": "Alist-Rclone All-in-One for Node.js PaaS",
+  "description": "openList-Rclone All-in-One for Node.js PaaS",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

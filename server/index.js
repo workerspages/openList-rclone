@@ -76,7 +76,7 @@ function rcloneRC(command, params = {}) {
 // ========================
 function sendBarkNotification(title, body) {
   if (!BARK_URL) return Promise.resolve();
-  const url = `${BARK_URL.replace(/\/+$/, '')}/${encodeURIComponent(title)}/${encodeURIComponent(body)}?icon=https://rclone.org/img/rclone-120x120.png&group=alist-rclone`;
+  const url = `${BARK_URL.replace(/\/+$/, '')}/${encodeURIComponent(title)}/${encodeURIComponent(body)}?icon=https://rclone.org/img/rclone-120x120.png&group=openlist-rclone`;
   const httpModule = url.startsWith('https') ? require('https') : http;
   return new Promise((resolve) => {
     httpModule.get(url, (resp) => {
@@ -226,13 +226,13 @@ app.get('/api/auth/cookie', (req, res) => {
 // Status Routes
 // ========================
 app.get('/api/status', authMiddleware, async (req, res) => {
-  const status = { alist: 'stopped', rclone: 'stopped' };
+  const status = { openlist: 'stopped', rclone: 'stopped' };
 
-  // Check Alist
+  // Check openList
   try {
-    const result = execSync('supervisorctl status alist 2>/dev/null', { encoding: 'utf-8', timeout: 5000 });
-    status.alist = result.includes('RUNNING') ? 'running' : 'stopped';
-  } catch { status.alist = 'stopped'; }
+    const result = execSync('supervisorctl status openlist 2>/dev/null', { encoding: 'utf-8', timeout: 5000 });
+    status.openlist = result.includes('RUNNING') ? 'running' : 'stopped';
+  } catch { status.openlist = 'stopped'; }
 
   // Check Rclone
   try {
@@ -324,7 +324,7 @@ app.get('/api/rclone/providers', authMiddleware, async (req, res) => {
 // ========================
 app.post('/api/service/restart', authMiddleware, (req, res) => {
   const { service } = req.body;
-  const allowed = ['alist', 'rclone', 'nginx'];
+  const allowed = ['openlist', 'rclone', 'nginx'];
   if (!allowed.includes(service)) return res.status(400).json({ error: 'Invalid service' });
   try {
     execSync(`supervisorctl restart ${service}`, { encoding: 'utf-8', timeout: 15000 });
@@ -336,10 +336,10 @@ app.post('/api/service/restart', authMiddleware, (req, res) => {
 
 app.get('/api/logs/:service', authMiddleware, (req, res) => {
   const { service } = req.params;
-  const allowed = ['alist', 'rclone', 'nginx', 'api'];
+  const allowed = ['openlist', 'rclone', 'nginx', 'api'];
   if (!allowed.includes(service)) return res.status(400).json({ error: 'Invalid service' });
   const logMap = {
-    alist: '/var/log/alist.log',
+    openlist: '/var/log/openlist.log',
     rclone: '/var/log/rclone.log',
     nginx: '/var/log/nginx/error.log',
     api: '/var/log/api.log',
@@ -395,12 +395,12 @@ app.post('/api/rclone/test', authMiddleware, async (req, res) => {
 app.post('/api/rclone/ls', authMiddleware, async (req, res) => {
   try {
     const { fs: remotePath, remote, path: dirPath } = req.body;
-    // Rclone operations/list works best with "fs" as the remote root (e.g. "alist:") 
+    // Rclone operations/list works best with "fs" as the remote root (e.g. "openlist:") 
     // and "remote" as the subpath (e.g. "/path/to/folder")
 
     // Support two types of calls:
-    // 1. fs="alist:/path", remote is unused
-    // 2. fs="alist:", remote="/path"
+    // 1. fs="openlist:/path", remote is unused
+    // 2. fs="openlist:", remote="/path"
 
     let fsStr = remotePath || remote;
     let remoteStr = dirPath || '';

@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: alist-rclone
+  IMAGE_NAME: openlist-rclone
 
 jobs:
   build-and-push:

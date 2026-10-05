@@ -14,14 +14,14 @@ COPY server/ ./
 FROM alpine:3.20
 
 LABEL maintainer="workerspages"
-LABEL org.opencontainers.image.source="https://github.com/workerspages/alist-rclone"
-LABEL org.opencontainers.image.description="Alist + Rclone All-in-One with Web Console"
+LABEL org.opencontainers.image.source="https://github.com/workerspages/openlist-rclone"
+LABEL org.opencontainers.image.description="openList + Rclone All-in-One with Web Console"
 
 # Target architecture (auto-set by Docker Buildx)
 ARG TARGETARCH
 
 # Versions (override with build args)
-ARG ALIST_VERSION=latest
+ARG OPENLIST_VERSION=latest
 
 # Install base packages
 RUN apk add --no-cache \
@@ -39,23 +39,23 @@ RUN apk add --no-cache \
     sqlite \
     && rm -rf /var/cache/apk/*
 
-# Download Alist (use TARGETARCH from Buildx)
+# Download openList (use TARGETARCH from Buildx)
 RUN set -ex; \
     mkdir -p /app; \
-    if [ "$TARGETARCH" = "amd64" ]; then ALIST_ARCH="amd64"; \
-    elif [ "$TARGETARCH" = "arm64" ]; then ALIST_ARCH="arm64"; \
+    if [ "$TARGETARCH" = "amd64" ]; then OPENLIST_ARCH="amd64"; \
+    elif [ "$TARGETARCH" = "arm64" ]; then OPENLIST_ARCH="arm64"; \
     else echo "Unsupported arch: $TARGETARCH" && exit 1; fi; \
-    if [ "$ALIST_VERSION" = "latest" ]; then \
-    ALIST_URL="https://github.com/AlistGo/alist/releases/latest/download/alist-linux-musl-${ALIST_ARCH}.tar.gz"; \
+    if [ "$OPENLIST_VERSION" = "latest" ]; then \
+    OPENLIST_URL="https://github.com/openListGo/openlist/releases/latest/download/openlist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
     else \
-    ALIST_URL="https://github.com/AlistGo/alist/releases/download/${ALIST_VERSION}/alist-linux-musl-${ALIST_ARCH}.tar.gz"; \
+    OPENLIST_URL="https://github.com/openListGo/openlist/releases/download/${OPENLIST_VERSION}/openlist-linux-musl-${OPENLIST_ARCH}.tar.gz"; \
     fi; \
-    echo "Downloading Alist ($ALIST_ARCH) from: $ALIST_URL"; \
-    curl -fsSL "$ALIST_URL" -o /tmp/alist.tar.gz && \
-    tar -xzf /tmp/alist.tar.gz -C /tmp/ && \
-    mv /tmp/alist /app/alist && \
-    chmod +x /app/alist && \
-    rm -f /tmp/alist.tar.gz
+    echo "Downloading openList ($OPENLIST_ARCH) from: $OPENLIST_URL"; \
+    curl -fsSL "$OPENLIST_URL" -o /tmp/openlist.tar.gz && \
+    tar -xzf /tmp/openlist.tar.gz -C /tmp/ && \
+    mv /tmp/openlist /app/openlist && \
+    chmod +x /app/openlist && \
+    rm -f /tmp/openlist.tar.gz
 
 # Download Rclone mod (wiserain fork, use TARGETARCH from Buildx)
 RUN set -ex; \
@@ -74,7 +74,7 @@ RUN set -ex; \
     rm -rf /tmp/rclone*
 
 # Create directories
-RUN mkdir -p /app/web /app/server /data/alist /data/rclone /var/log/nginx /opt/host
+RUN mkdir -p /app/web /app/server /data/openlist /data/rclone /var/log/nginx /opt/host
 
 # Copy web frontend
 COPY web/ /app/web/
@@ -93,7 +93,7 @@ RUN chmod +x /entrypoint.sh
 # Environment variables (non-sensitive defaults)
 ENV TZ=Asia/Shanghai \
     WEB_USERNAME=admin \
-    ALIST_ADMIN_USERNAME=admin
+    OPENLIST_ADMIN_USERNAME=admin
 
 # Data volume
 VOLUME ["/data"]

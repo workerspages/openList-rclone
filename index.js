@@ -1,4 +1,4 @@
-process.env.ALIST_ADMIN_PASSWORD = '这里换成你想要的Alist密码';
+process.env.OPENLIST_ADMIN_PASSWORD = '这里换成你想要的openList密码';
 process.env.WEB_PASSWORD = '这里换成你想要的控制台密码';
 
 const express = require('express');
@@ -49,13 +49,13 @@ process.env.SYNC_INTERVAL= '5';
 
 
 // 进程引用
-let alistProcess = null;
+let openlistProcess = null;
 let rcloneProcess = null;
 
 // ========================
 // 内存日志系统
 // ========================
-const logsMemory = { alist: [], rclone: [], api: [] };
+const logsMemory = { openlist: [], rclone: [], api: [] };
 function appendLog(service, data) {
     if (!data) return;
     const lines = data.toString().split('\n');
@@ -109,7 +109,7 @@ function rcloneRC(command, params = {}) {
 
 function sendBarkNotification(title, body) {
     if (!BARK_URL) return Promise.resolve();
-    const url = `${BARK_URL.replace(/\/+$/, '')}/${encodeURIComponent(title)}/${encodeURIComponent(body)}?icon=https://rclone.org/img/rclone-120x120.png&group=alist-rclone`;
+    const url = `${BARK_URL.replace(/\/+$/, '')}/${encodeURIComponent(title)}/${encodeURIComponent(body)}?icon=https://rclone.org/img/rclone-120x120.png&group=openlist-rclone`;
     const httpModule = url.startsWith('https') ? require('https') : http;
     return new Promise((resolve) => {
         httpModule.get(url, (resp) => {
@@ -190,7 +190,7 @@ function monitorJobCompletion(taskId, taskName, jobId) {
 const app = express();
 app.set('trust proxy', 1);
 
-// 限制 express.json() 仅对 /console-api/ 生效，防止吃掉 Alist 代理的 POST 请求
+// 限制 express.json() 仅对 /console-api/ 生效，防止吃掉 openList 代理的 POST 请求
 app.use('/console-api', express.json());
 
 function authMiddleware(req, res, next) {
@@ -242,8 +242,8 @@ app.get('/console-api/auth/cookie', (req, res) => {
 });
 
 app.get('/console-api/status', authMiddleware, async (req, res) => {
-    const status = { alist: 'stopped', rclone: 'stopped', uptime: 0 };
-    if (alistProcess && !alistProcess.killed) status.alist = 'running';
+    const status = { openlist: 'stopped', rclone: 'stopped', uptime: 0 };
+    if (openlistProcess && !openlistProcess.killed) status.openlist = 'running';
     try {
         await rcloneRC('/rc/noop');
         status.rclone = 'running';
@@ -312,11 +312,11 @@ app.get('/console-api/rclone/providers', authMiddleware, async (req, res) => {
 app.post('/console-api/service/restart', authMiddleware, (req, res) => {
     const { service } = req.body;
     try {
-        if (service === 'alist' && alistProcess) {
-            alistProcess.kill();
-            alistProcess = spawn(path.join(BIN_DIR, 'alist'), ['server', '--data', path.join(DATA_DIR, 'alist')]);
-            alistProcess.stdout.on('data', d => appendLog('alist', d));
-            alistProcess.stderr.on('data', d => appendLog('alist', d));
+        if (service === 'openlist' && openlistProcess) {
+            openlistProcess.kill();
+            openlistProcess = spawn(path.join(BIN_DIR, 'openlist'), ['server', '--data', path.join(DATA_DIR, 'openlist')]);
+            openlistProcess.stdout.on('data', d => appendLog('openlist', d));
+            openlistProcess.stderr.on('data', d => appendLog('openlist', d));
         } else if (service === 'rclone' && rcloneProcess) {
             rcloneProcess.kill();
             rcloneProcess = spawn(path.join(BIN_DIR, 'rclone'), ['rcd', '--rc-addr=127.0.0.1:5572', '--rc-no-auth', `--config=${path.join(DATA_DIR, 'rclone', 'rclone.conf')}`, `--cache-dir=${path.join(DATA_DIR, 'rclone', 'cache')}`]);
@@ -329,7 +329,7 @@ app.post('/console-api/service/restart', authMiddleware, (req, res) => {
 
 app.get('/console-api/logs/:service', authMiddleware, (req, res) => {
     const { service } = req.params;
-    const allowed = ['alist', 'rclone', 'nginx', 'api'];
+    const allowed = ['openlist', 'rclone', 'nginx', 'api'];
     if (!allowed.includes(service)) return res.status(400).json({ error: 'Invalid service' });
     if (service === 'nginx') return res.json({ service, log: 'Nginx 服务在此架构下已被 Node.js 反向代理完全替代。请查阅 API 日志。' });
     res.json({ service, log: logsMemory[service].join('\n') || 'No logs available' });
@@ -534,7 +534,7 @@ app.get('/console-api/bark/status', authMiddleware, (req, res) => res.json({ con
 app.get('/console-api/tasks/:id/history', authMiddleware, (req, res) => res.json({ history: loadTasks().find(t => t.id === req.params.id)?.history || [] }));
 
 // ========================
-// 静态文件与 Alist 路由代理配置
+// 静态文件与 openList 路由代理配置
 // ========================
 app.use('/console', express.static(path.join(ROOT_DIR, 'web')));
 app.get('/console/*', (req, res) => res.sendFile(path.join(ROOT_DIR, 'web', 'index.html')));
@@ -551,7 +551,7 @@ app.use('/', createProxyMiddleware({
 // ========================
 async function bootstrap() {
     console.log("============================================");
-    console.log("  Alist-Rclone All-in-One for Node.js PaaS  ");
+    console.log("  openList-Rclone All-in-One for Node.js PaaS  ");
     console.log("============================================");
 
     // 1. 初始化目录和环境变量
@@ -563,18 +563,18 @@ async function bootstrap() {
     const archMap = { 'x64': 'amd64', 'arm64': 'arm64', 'arm': 'arm-v7' };
     const arch = archMap[process.arch] || 'amd64';
 
-    // 2. 下载并部署 Alist 二进制文件
-    const alistPath = path.join(BIN_DIR, 'alist');
-    if (!fs.existsSync(alistPath)) {
-        console.log(`[Init] Downloading Alist (${arch})...`);
+    // 2. 下载并部署 openList 二进制文件
+    const openlistPath = path.join(BIN_DIR, 'openlist');
+    if (!fs.existsSync(openlistPath)) {
+        console.log(`[Init] Downloading openList (${arch})...`);
         try {
-            const alistUrl = `https://github.com/AlistGo/alist/releases/latest/download/alist-linux-musl-${arch}.tar.gz`;
-            execSync(`curl -fsSL "${alistUrl}" -o alist.tar.gz`, { stdio: 'inherit' });
-            execSync(`tar -xzf alist.tar.gz -C "${BIN_DIR}"`);
-            execSync(`chmod +x "${alistPath}"`);
-            fs.unlinkSync('alist.tar.gz');
+            const openlistUrl = `https://github.com/openListGo/openlist/releases/latest/download/openlist-linux-musl-${arch}.tar.gz`;
+            execSync(`curl -fsSL "${openlistUrl}" -o openlist.tar.gz`, { stdio: 'inherit' });
+            execSync(`tar -xzf openlist.tar.gz -C "${BIN_DIR}"`);
+            execSync(`chmod +x "${openlistPath}"`);
+            fs.unlinkSync('openlist.tar.gz');
         } catch (e) {
-            console.error('[Init] Alist download failed!', e.message);
+            console.error('[Init] openList download failed!', e.message);
             process.exit(1);
         }
     }
@@ -630,31 +630,31 @@ async function bootstrap() {
         }
     }
 
-    // 5. 初始化 Alist 和配置管理员密码
-    const alistConfigDir = path.join(DATA_DIR, 'alist');
+    // 5. 初始化 openList 和配置管理员密码
+    const openlistConfigDir = path.join(DATA_DIR, 'openlist');
 
     // 启动时强力清理历史临时文件，释放面板容器的存储空间
     try {
-        console.log('[Init] Cleaning up legacy Alist temporary files to free up space...');
-        const temp1 = path.join(alistConfigDir, 'temp');
-        const temp2 = path.join(alistConfigDir, 'data', 'temp');
+        console.log('[Init] Cleaning up legacy openList temporary files to free up space...');
+        const temp1 = path.join(openlistConfigDir, 'temp');
+        const temp2 = path.join(openlistConfigDir, 'data', 'temp');
         execSync(`rm -rf "${temp1}" "${temp2}" 2>/dev/null || true`);
         execSync(`mkdir -p "${temp1}" "${temp2}" 2>/dev/null || true`);
     } catch (e) {
         console.warn('[Init] Warning: Failed to clean temp files:', e.message);
     }
 
-    if (!fs.existsSync(path.join(alistConfigDir, 'config.json'))) {
-        console.log('[Init] First run, creating Alist configuration...');
-        const initAlist = spawn(alistPath, ['server', '--data', alistConfigDir]);
+    if (!fs.existsSync(path.join(openlistConfigDir, 'config.json'))) {
+        console.log('[Init] First run, creating openList configuration...');
+        const initopenList = spawn(openlistPath, ['server', '--data', openlistConfigDir]);
         await new Promise(r => setTimeout(r, 3000));
-        initAlist.kill();
+        initopenList.kill();
     }
-    if (process.env.ALIST_ADMIN_PASSWORD) {
+    if (process.env.OPENLIST_ADMIN_PASSWORD) {
         try { 
-            execFileSync(alistPath, ['admin', 'set', process.env.ALIST_ADMIN_PASSWORD, '--data', alistConfigDir], { stdio: 'ignore' }); 
+            execFileSync(openlistPath, ['admin', 'set', process.env.OPENLIST_ADMIN_PASSWORD, '--data', openlistConfigDir], { stdio: 'ignore' }); 
         } catch (e) {
-            console.warn('[Init] Failed to set Alist admin password:', e.message);
+            console.warn('[Init] Failed to set openList admin password:', e.message);
         }
     }
 
@@ -663,26 +663,26 @@ async function bootstrap() {
     if (!fs.existsSync(rcloneConfPath)) fs.writeFileSync(rcloneConfPath, '');
     
     // 确保不包含末尾斜杠，并优先尝试使用 update
-    const ALIST_REMOTE_NAME = 'alist';
-    const aUser = process.env.ALIST_ADMIN_USERNAME || 'admin';
-    const aPass = process.env.ALIST_ADMIN_PASSWORD || 'admin';
+    const OPENLIST_REMOTE_NAME = 'openlist';
+    const aUser = process.env.OPENLIST_ADMIN_USERNAME || 'admin';
+    const aPass = process.env.OPENLIST_ADMIN_PASSWORD || 'admin';
     let confContent = fs.readFileSync(rcloneConfPath, 'utf8');
     
-    if (!confContent.includes(`[${ALIST_REMOTE_NAME}]`)) {
-        console.log('[Init] Creating built-in Alist remote configuration...');
+    if (!confContent.includes(`[${OPENLIST_REMOTE_NAME}]`)) {
+        console.log('[Init] Creating built-in openList remote configuration...');
         let obs = aPass;
         try {
             obs = execFileSync('rclone', ['obscure', aPass], { encoding: 'utf-8' }).trim();
         } catch (e) {
-            console.warn('[Init] Failed to obscure built-in Alist password:', e.message);
+            console.warn('[Init] Failed to obscure built-in openList password:', e.message);
         }
-        fs.appendFileSync(rcloneConfPath, `\n[${ALIST_REMOTE_NAME}]\ntype = webdav\nurl = http://127.0.0.1:5244/dav\nvendor = other\nuser = ${aUser}\npass = ${obs}\n`);
+        fs.appendFileSync(rcloneConfPath, `\n[${OPENLIST_REMOTE_NAME}]\ntype = webdav\nurl = http://127.0.0.1:5244/dav\nvendor = other\nuser = ${aUser}\npass = ${obs}\n`);
     } else {
-        console.log('[Init] Updating built-in Alist remote configuration...');
+        console.log('[Init] Updating built-in openList remote configuration...');
         try {
-            await execFilePromise('rclone', ['config', 'update', ALIST_REMOTE_NAME, 'url', 'http://127.0.0.1:5244/dav', 'vendor', 'other', 'user', aUser, 'pass', aPass, '--config', rcloneConfPath]);
+            await execFilePromise('rclone', ['config', 'update', OPENLIST_REMOTE_NAME, 'url', 'http://127.0.0.1:5244/dav', 'vendor', 'other', 'user', aUser, 'pass', aPass, '--config', rcloneConfPath]);
         } catch (e) {
-            console.error('[Init] Failed to update built-in Alist remote:', e.message);
+            console.error('[Init] Failed to update built-in openList remote:', e.message);
         }
     }
     
@@ -694,11 +694,11 @@ async function bootstrap() {
         fs.appendFileSync(rcloneConfPath, `\n[host]\ntype = alias\nremote = ${hostDir}\n`);
     }
 
-    // 7. 启动子进程 (Alist & Rclone) 并捕获日志
-    console.log('[Init] Starting Alist & Rclone processes...');
-    alistProcess = spawn(alistPath, ['server', '--data', alistConfigDir]);
-    alistProcess.stdout.on('data', d => appendLog('alist', d));
-    alistProcess.stderr.on('data', d => appendLog('alist', d));
+    // 7. 启动子进程 (openList & Rclone) 并捕获日志
+    console.log('[Init] Starting openList & Rclone processes...');
+    openlistProcess = spawn(openlistPath, ['server', '--data', openlistConfigDir]);
+    openlistProcess.stdout.on('data', d => appendLog('openlist', d));
+    openlistProcess.stderr.on('data', d => appendLog('openlist', d));
 
     rcloneProcess = spawn(rclonePath, ['rcd', '--rc-addr=127.0.0.1:5572', '--rc-no-auth', `--config=${rcloneConfPath}`, `--cache-dir=${path.join(DATA_DIR, 'rclone', 'cache')}`]);
     rcloneProcess.stdout.on('data', d => appendLog('rclone', d));
@@ -712,15 +712,15 @@ async function bootstrap() {
             console.log(`[AutoSync] === Pushing updates to remote ===`);
             try {
                 // 1. SQLite WAL Checkpoint (确保所有缓存数据落入主库 data.db)
-                execSync(`sqlite3 "${path.join(alistConfigDir, 'data.db')}" "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true`);
+                execSync(`sqlite3 "${path.join(openlistConfigDir, 'data.db')}" "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true`);
                 
                 // 2. 第一阶段：针对 WebDAV 无法校验 Hash 和 ModTime 的致命缺陷，强制无条件覆盖核心配置文件！
                 console.log(`[AutoSync] Force pushing critical database and config files...`);
                 // 处理末尾斜杠问题，确保路径拼接正确
                 const safeDest = SYNC_DEST.replace(/\/$/, '');
                 const criticalFiles = [
-                    { src: path.join(alistConfigDir, 'data.db'), dst: `${safeDest}/alist` },
-                    { src: path.join(alistConfigDir, 'config.json'), dst: `${safeDest}/alist` },
+                    { src: path.join(openlistConfigDir, 'data.db'), dst: `${safeDest}/openlist` },
+                    { src: path.join(openlistConfigDir, 'config.json'), dst: `${safeDest}/openlist` },
                     { src: path.join(DATA_DIR, 'rclone', 'rclone.conf'), dst: `${safeDest}/rclone` },
                     { src: path.join(DATA_DIR, 'rclone', 'scheduled-tasks.json'), dst: `${safeDest}/rclone` }
                 ];
@@ -734,7 +734,7 @@ async function bootstrap() {
 
                 // 3. 第二阶段：全局常规同步 (用于同步其他普通的大文件，这部分依靠默认的大小检测就足够了)
                 console.log(`[AutoSync] Syncing other incremental files...`);
-                execSync(`rclone sync "${DATA_DIR}" "${SYNC_DEST}" --config "${syncConfPath}" --exclude "rclone/cache/**" --exclude "alist/data/temp/**" --exclude "alist/temp/**" --exclude "alist/data/bleve/**" --exclude "alist/data/log/**" -v`, { stdio: 'inherit' });
+                execSync(`rclone sync "${DATA_DIR}" "${SYNC_DEST}" --config "${syncConfPath}" --exclude "rclone/cache/**" --exclude "openlist/data/temp/**" --exclude "openlist/temp/**" --exclude "openlist/data/bleve/**" --exclude "openlist/data/log/**" -v`, { stdio: 'inherit' });
                 
                 console.log(`[AutoSync] Push complete.`);
             } catch (e) { console.error(`[AutoSync] Push failed:`, e.message); }
@@ -750,8 +750,8 @@ async function bootstrap() {
         console.log(`[System] Aggressive background temp files cleanup task scheduled.`);
         setInterval(() => {
             try {
-                const temp1 = path.join(alistConfigDir, 'temp');
-                const temp2 = path.join(alistConfigDir, 'data', 'temp');
+                const temp1 = path.join(openlistConfigDir, 'temp');
+                const temp2 = path.join(openlistConfigDir, 'data', 'temp');
                 execSync(`mkdir -p "${temp1}" "${temp2}" 2>/dev/null || true`);
                 // 激进清理：查找并删除超过 10 分钟没有被写入变动的临时文件！
                 execSync(`find "${temp1}" -type f -mmin +10 -delete 2>/dev/null || true`);

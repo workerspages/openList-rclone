@@ -2,7 +2,7 @@
 set -e
 
 echo "============================================"
-echo "  Alist-Rclone All-in-One Container"
+echo "  openList-Rclone All-in-One Container"
 echo "============================================"
 
 # ---- Setup Swap Memory ----
@@ -185,33 +185,33 @@ if [ -f /data/rclone/scheduled-tasks.json ]; then
     "
 fi
 
-# ---- Initialize Alist ----
-echo "[Init] Initializing Alist..."
+# ---- Initialize openList ----
+echo "[Init] Initializing openList..."
 
-if [ -d /data/alist ]; then
+if [ -d /data/openlist ]; then
     # 1. 强力清理可能从 S3 带来的 SQLite 临时锁文件
     echo "[Init] Cleaning up residual SQLite WAL files to prevent database locks..."
-    rm -f /data/alist/*.db-wal /data/alist/*.db-shm
+    rm -f /data/openlist/*.db-wal /data/openlist/*.db-shm
 
     # 2. 检查数据库完整性（安抚与排错诊断）
-    if [ -f /data/alist/data.db ]; then
+    if [ -f /data/openlist/data.db ]; then
         echo "[Init] Checking SQLite database integrity..."
-        CHECK_RESULT=$(sqlite3 /data/alist/data.db "PRAGMA integrity_check;" 2>&1 || echo "failed")
+        CHECK_RESULT=$(sqlite3 /data/openlist/data.db "PRAGMA integrity_check;" 2>&1 || echo "failed")
         if [[ "$CHECK_RESULT" == *"ok"* ]]; then
             echo "[Init] Success: Database integrity is OK."
         else
             echo "[Init] WARNING: Database might be corrupted. Output: $CHECK_RESULT"
-            echo "[Init] WARNING: If Alist fails to start, consider deleting /data/alist/data.db from your S3 bucket."
+            echo "[Init] WARNING: If openList fails to start, consider deleting /data/openlist/data.db from your S3 bucket."
         fi
     fi
 
     # 3. 强制修复 config.json，剔除不兼容的 HTTPS 证书路径和绑定限制
-    if [ -f /data/alist/config.json ]; then
-        echo "[Init] Patching Alist config.json for PaaS compatibility..."
+    if [ -f /data/openlist/config.json ]; then
+        echo "[Init] Patching openList config.json for PaaS compatibility..."
         node -e "
         const fs = require('fs');
         try {
-            const file = '/data/alist/config.json';
+            const file = '/data/openlist/config.json';
             let cfg = JSON.parse(fs.readFileSync(file, 'utf-8'));
             if (cfg.scheme) {
                 cfg.scheme.address = '0.0.0.0';
@@ -229,19 +229,19 @@ if [ -d /data/alist ]; then
     fi
 fi
 
-if [ ! -f /data/alist/config.json ]; then
-    echo "[Init] First run, creating Alist config (sqlite3)..."
-    mkdir -p /data/alist
-    cd /data/alist
-    /app/alist server --data /data/alist &
-    ALIST_PID=$!
+if [ ! -f /data/openlist/config.json ]; then
+    echo "[Init] First run, creating openList config (sqlite3)..."
+    mkdir -p /data/openlist
+    cd /data/openlist
+    /app/openlist server --data /data/openlist &
+    OPENLIST_PID=$!
     sleep 3
-    kill $ALIST_PID 2>/dev/null || true
-    wait $ALIST_PID 2>/dev/null || true
+    kill $OPENLIST_PID 2>/dev/null || true
+    wait $OPENLIST_PID 2>/dev/null || true
 fi
 
-if [ -n "$ALIST_ADMIN_PASSWORD" ]; then
-    /app/alist admin set "$ALIST_ADMIN_PASSWORD" --data /data/alist 2>/dev/null || true
+if [ -n "$OPENLIST_ADMIN_PASSWORD" ]; then
+    /app/openlist admin set "$OPENLIST_ADMIN_PASSWORD" --data /data/openlist 2>/dev/null || true
 fi
 
 # ---- Initialize Rclone ----
@@ -251,24 +251,24 @@ if [ ! -f /data/rclone/rclone.conf ]; then
     touch /data/rclone/rclone.conf
 fi
 
-ALIST_REMOTE_NAME="alist"
-ALIST_USER="${ALIST_ADMIN_USERNAME:-admin}"
-ALIST_PASS="${ALIST_ADMIN_PASSWORD:-admin}"
+OPENLIST_REMOTE_NAME="openlist"
+OPENLIST_USER="${OPENLIST_ADMIN_USERNAME:-admin}"
+OPENLIST_PASS="${OPENLIST_ADMIN_PASSWORD:-admin}"
 
-echo "[Init] Updating built-in Alist remote configuration..."
-if ! grep -q "\[$ALIST_REMOTE_NAME\]" /data/rclone/rclone.conf; then
-    OBSCURED_PASS=$(/usr/bin/rclone obscure "$ALIST_PASS")
+echo "[Init] Updating built-in openList remote configuration..."
+if ! grep -q "\[$OPENLIST_REMOTE_NAME\]" /data/rclone/rclone.conf; then
+    OBSCURED_PASS=$(/usr/bin/rclone obscure "$OPENLIST_PASS")
     cat >> /data/rclone/rclone.conf <<EOF
 
-[$ALIST_REMOTE_NAME]
+[$OPENLIST_REMOTE_NAME]
 type = webdav
 url = http://127.0.0.1:5244/dav
 vendor = other
-user = $ALIST_USER
+user = $OPENLIST_USER
 pass = $OBSCURED_PASS
 EOF
 else
-    /usr/bin/rclone config update "$ALIST_REMOTE_NAME" url "http://127.0.0.1:5244/dav" vendor "other" user "$ALIST_USER" pass "$ALIST_PASS" --config /data/rclone/rclone.conf >/dev/null 2>&1 || true
+    /usr/bin/rclone config update "$OPENLIST_REMOTE_NAME" url "http://127.0.0.1:5244/dav" vendor "other" user "$OPENLIST_USER" pass "$OPENLIST_PASS" --config /data/rclone/rclone.conf >/dev/null 2>&1 || true
 fi
 
 HOST_REMOTE_NAME="host"
@@ -285,7 +285,7 @@ fi
 export WEB_USERNAME="${WEB_USERNAME:-admin}"
 export WEB_PASSWORD="${WEB_PASSWORD:-admin}"
 htpasswd -cb /etc/nginx/.htpasswd "$WEB_USERNAME" "$WEB_PASSWORD"
-touch /var/log/alist.log /var/log/rclone.log /var/log/api.log
+touch /var/log/openlist.log /var/log/rclone.log /var/log/api.log
 
 echo "[Init] Starting services via supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisord.conf

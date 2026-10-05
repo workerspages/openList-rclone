@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Alist + Rclone 一体化管理控制台">
-    <title>Alist-Rclone 管理控制台</title>
+    <meta name="description" content="openList + Rclone 一体化管理控制台">
+    <title>openList-Rclone 管理控制台</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
                             </defs>
                         </svg>
                     </div>
-                    <h1>Alist-Rclone</h1>
+                    <h1>openList-Rclone</h1>
                     <p class="subtitle">一体化云存储管理平台</p>
                 </div>
                 <form id="login-form" autocomplete="on">
@@ -74,7 +74,7 @@
                             </linearGradient>
                         </defs>
                     </svg>
-                    <span>Alist-Rclone</span>
+                    <span>openList-Rclone</span>
                 </div>
             </div>
             <ul class="nav-menu">
@@ -103,12 +103,12 @@
                     </svg>
                     <span>定时任务</span>
                 </li>
-                <li class="nav-item" data-page="alist">
+                <li class="nav-item" data-page="openlist">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
                         <polyline points="13 2 13 9 20 9" />
                     </svg>
-                    <span>Alist 文件管理</span>
+                    <span>openList 文件管理</span>
                 </li>
 
                 <li class="nav-item" data-page="live-status">
@@ -167,8 +167,8 @@
                 <!-- Dashboard -->
                 <div id="page-dashboard" class="page active">
                     <div class="stats-grid">
-                        <div class="stat-card" id="stat-alist">
-                            <div class="stat-icon alist">
+                        <div class="stat-card" id="stat-openlist">
+                            <div class="stat-icon openlist">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
@@ -176,10 +176,10 @@
                                 </svg>
                             </div>
                             <div class="stat-info">
-                                <h3>Alist</h3>
+                                <h3>openList</h3>
                                 <span class="stat-status loading">检测中...</span>
                             </div>
-                            <button class="btn-icon" onclick="App.restartService('alist')" title="重启 Alist">
+                            <button class="btn-icon" onclick="App.restartService('openlist')" title="重启 openList">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <polyline points="23 4 23 10 17 10" />
@@ -253,7 +253,7 @@
                                         </div>
                                         <span>添加远程存储</span>
                                     </button>
-                                    <a class="action-card" href="/alist/" target="_blank">
+                                    <a class="action-card" href="/openlist/" target="_blank">
                                         <div class="action-icon"
                                             style="background: linear-gradient(135deg, #06b6d4, #0891b2)">
                                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white"
@@ -263,7 +263,7 @@
                                                 <line x1="10" y1="14" x2="21" y2="3" />
                                             </svg>
                                         </div>
-                                        <span>打开 Alist</span>
+                                        <span>打开 openList</span>
                                     </a>
                                     <button class="action-card" onclick="App.navigate('logs')">
                                         <div class="action-icon"
@@ -537,10 +537,10 @@
                     </div>
                 </div>
 
-                <!-- Alist Page -->
-                <div id="page-alist" class="page">
+                <!-- openList Page -->
+                <div id="page-openlist" class="page">
                     <div class="embed-container">
-                        <iframe id="alist-frame" src="" frameborder="0" loading="lazy"></iframe>
+                        <iframe id="openlist-frame" src="" frameborder="0" loading="lazy"></iframe>
                     </div>
                 </div>
 
@@ -563,7 +563,7 @@
                 <div id="page-logs" class="page">
                     <div class="logs-controls">
                         <div class="tabs">
-                            <button class="tab active" data-service="alist">Alist</button>
+                            <button class="tab active" data-service="openlist">openList</button>
                             <button class="tab" data-service="rclone">Rclone</button>
                             <button class="tab" data-service="nginx">Nginx</button>
                             <button class="tab" data-service="api">API</button>

@@ -1,13 +1,13 @@
 
-# Alist-Rclone All-in-One
+# openList-Rclone All-in-One
 
-将 [Alist](https://github.com/AlistGo/alist) 和 [Rclone](https://github.com/wiserain/rclone)（mod 版本）集成到一个 Docker 镜像中，提供统一的 Web 控制台管理界面。
+将 [openList](https://github.com/openListGo/openlist) 和 [Rclone](https://github.com/wiserain/rclone)（mod 版本）集成到一个 Docker 镜像中，提供统一的 Web 控制台管理界面。
 
 专为 **PaaS 平台与 VPS** 设计 — 无需终端，所有操作通过 Web 界面完成。
 
 ## ✨ 功能特性
 
-- 🗂️ **Alist 文件管理** — 支持多种云存储的在线文件管理
+- 🗂️ **openList 文件管理** — 支持多种云存储的在线文件管理
 - ☁️ **Rclone 云同步** — 强大的云存储挂载和同步工具（wiserain mod 版本）
 - 🎛️ **统一 Web 控制台** — 在浏览器中管理所有配置和操作
 - 🔄 **高级文件传输** — 支持在不同云盘间直接互拷，支持并发、过滤等高级传输参数
@@ -27,17 +27,17 @@
 
 ```bash
 docker run -d \
-  --name alist-rclone \
+  --name openlist-rclone \
   -p 8080:8080 \
   -v $(pwd)/data:/data \
   -v $(pwd)/host:/opt/host:ro \
   -e WEB_USERNAME=admin \
   -e WEB_PASSWORD=your_password \
-  -e ALIST_ADMIN_PASSWORD=your_alist_password \
+  -e OPENLIST_ADMIN_PASSWORD=your_openlist_password \
   -e TZ=Asia/Shanghai \
   -e SYNC_DEST="你的SYNC_DEST_可选" \
   -e SYNC_INTERVAL="5" \
-  ghcr.io/workerspages/alist-rclone:latest
+  ghcr.io/workerspages/openlist-rclone:latest
 
 ```
 
@@ -49,9 +49,9 @@ docker run -d \
 
 ```yaml
 services:
-  alist-rclone:
-    image: ghcr.io/workerspages/alist-rclone:latest
-    container_name: alist-rclone
+  openlist-rclone:
+    image: ghcr.io/workerspages/openlist-rclone:latest
+    container_name: openlist-rclone
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -66,9 +66,9 @@ services:
       - WEB_USERNAME=admin
       - WEB_PASSWORD=admin
       
-      # Alist 管理员凭据
-      - ALIST_ADMIN_USERNAME=admin
-      - ALIST_ADMIN_PASSWORD=admin
+      # openList 管理员凭据
+      - OPENLIST_ADMIN_USERNAME=admin
+      - OPENLIST_ADMIN_PASSWORD=admin
       
       # 高级变量 (PaaS 无状态环境自动备份配置)
       # 方式一：结构化配置（推荐）
@@ -78,7 +78,7 @@ services:
       # - S3_SECRET_KEY=your_sk
       # - S3_BUCKET=your_bucket
       # - S3_REGION=auto
-      # - S3_PATH=alist-rclone
+      # - S3_PATH=openlist-rclone
       
       # 方式二：标准网址格式或底层语法（与方式一二选一即可）
       # - SYNC_DEST=s3://AK:SK@xxx.r2.cloudflarestorage.com/bucket
@@ -108,7 +108,7 @@ docker compose up -d
 
 根据你截图的界面：
 
-1. **Name**：填写你喜欢的名字（例如 `alist-rclone`）。
+1. **Name**：填写你喜欢的名字（例如 `openlist-rclone`）。
 2. **Type**：选择 **NodeJs**。
 3. **Resources**：选择免费套餐。
 4. 勾选验证码和协议，点击 **Create server**。
@@ -150,7 +150,7 @@ docker compose up -d
 
 大多数 PaaS 平台（如 Railway、Render、Zeabur、Koyeb 等）支持直接使用 Docker 镜像部署：
 
-1. **镜像地址**：`ghcr.io/workerspages/alist-rclone:latest`
+1. **镜像地址**：`ghcr.io/workerspages/openlist-rclone:latest`
 2. **端口**：设置为 `8080`
 3. **环境变量**：按下方表格配置
 4. **持久化存储**：如果平台无持久化本地存储，请务必参考下方的 `SYNC_DEST` 无状态持久化方案。
@@ -163,8 +163,8 @@ docker compose up -d
 | --- | --- | --- | --- |
 | `WEB_USERNAME` | `admin` | ✅ | Web 控制台登录用户名 |
 | `WEB_PASSWORD` | `admin` | ⚠️ | Web 控制台登录密码，**强烈建议修改** |
-| `ALIST_ADMIN_USERNAME` | `admin` | ✅ | Alist 管理员用户名 |
-| `ALIST_ADMIN_PASSWORD` | `admin` | ⚠️ | Alist 管理员密码，**强烈建议修改** |
+| `OPENLIST_ADMIN_USERNAME` | `admin` | ✅ | openList 管理员用户名 |
+| `OPENLIST_ADMIN_PASSWORD` | `admin` | ⚠️ | openList 管理员密码，**强烈建议修改** |
 | `TZ` | `Asia/Shanghai` | ✅ | 容器时区 |
 | `SYNC_DEST` | - | ❌ | **[无状态 PaaS 专用]** 外部配置备份地址（如 S3 或 WebDAV）。配置后每次启动自动拉取，并依 `SYNC_INTERVAL` 自动备份 `/data` 目录 |
 | `SYNC_INTERVAL` | `5` | ❌ | **[无状态 PaaS 专用]** 自动同步外部存储的时间间隔（分钟）。默认为 `5`。**设为 `0` 即可开启只读从节点模式** |
@@ -173,7 +173,7 @@ docker compose up -d
 | `BARK_URL` | - | ❌ | Bark 推送通知服务器地址（如 `https://api.day.app/yourkey`）。配置后定时任务执行完成时会自动发送推送通知 |
 | `IGNORE_ERRORS` | `object not found` | ❌ | 自定义需要静默忽略的错误关键字（多个用英文逗号分隔），包含这些关键字的错误将被当做成功，不发失败报警 |
 
-> ⚠️ **安全提示**：首次部署时请务必修改 `WEB_PASSWORD` 和 `ALIST_ADMIN_PASSWORD`，不要使用默认值。
+> ⚠️ **安全提示**：首次部署时请务必修改 `WEB_PASSWORD` 和 `OPENLIST_ADMIN_PASSWORD`，不要使用默认值。
 
 ---
 
@@ -181,7 +181,7 @@ docker compose up -d
 
 在 Koyeb、Render 等没有本地持久化存储（Volume）的 PaaS 平台上，容器重启会导致所有应用数据和配置丢失。
 
-为了解决此问题，您只需配置 `SYNC_DEST` 环境变量，容器就会在启动时**自动从外部存储拉取完整环境**，并在运行期间**按 `SYNC_INTERVAL` 设定的分钟数（默认 5）自动将最新状态备份回外部存储**（自动排除不必要的缓存和临时文件）。此方案将同时备份 Alist 数据库与 Rclone 配置。
+为了解决此问题，您只需配置 `SYNC_DEST` 环境变量，容器就会在启动时**自动从外部存储拉取完整环境**，并在运行期间**按 `SYNC_INTERVAL` 设定的分钟数（默认 5）自动将最新状态备份回外部存储**（自动排除不必要的缓存和临时文件）。此方案将同时备份 openList 数据库与 Rclone 配置。
 
 > 💡 **高级进阶：多节点主从部署 (Primary-Secondary)**
 > 如果您在多个平台部署了该容器，且它们共享同一个 `SYNC_DEST`，**定时同步和关机保护机制会导致不同平台的数据互相覆盖**。
@@ -206,7 +206,7 @@ S3_BUCKET=你的存储桶名称
 
 *高级选项（可选）：*
 * `S3_REGION`: 默认为 `us-east-1`，如果您使用 Cloudflare R2，系统会自动检测并使用 `auto`。
-* `S3_PATH`: 桶内子路径，例如 `alist-backup/`。
+* `S3_PATH`: 桶内子路径，例如 `openlist-backup/`。
 
 ### 2. 结构化配置：备份到 WebDAV（以坚果云为例）
 
@@ -223,7 +223,7 @@ WEBDAV_PASS=你的应用密码
 
 *高级选项（可选）：*
 * `WEBDAV_VENDOR`: 默认为 `other`（适配坚果云等），如果您使用 Nextcloud，可设为 `nextcloud`。
-* `WEBDAV_PATH`: 远端子路径，例如 `alist-backup/`。
+* `WEBDAV_PATH`: 远端子路径，例如 `openlist-backup/`。
 
 ### 3. 单行网址或原生语法配置（向后兼容/备选方案）
 
@@ -244,24 +244,24 @@ WEBDAV_PASS=你的应用密码
 
 部署完成后：
 
-* **Alist 文件管理**：访问 `http://你的IP:端口/` 即可打开 Alist
+* **openList 文件管理**：访问 `http://你的IP:端口/` 即可打开 openList
 * **Web 管理控制台**：访问 `http://你的IP:端口/console/` 管理 Rclone 配置、文件传输、查看日志等
 
 ### 路由说明
 
 | 路径 | 服务 | 说明 |
 | --- | --- | --- |
-| `/` | Alist 文件管理 | Alist 原生界面（根路径直接访问） |
+| `/` | openList 文件管理 | openList 原生界面（根路径直接访问） |
 | `/console/` | Web 管理控制台 | 统一管理界面，需登录 |
 | `/console-api/` | 后端 API | 控制台后端接口 |
 
 ### Web 控制台功能
 
-1. **仪表板** — 查看 Alist 和 Rclone 运行状态、运行时间、远程存储数量
+1. **仪表板** — 查看 openList 和 Rclone 运行状态、运行时间、远程存储数量
 2. **Rclone 配置** — 添加/修改/测试/删除远程存储，包括强大的实时 **连通性探测功能**
 3. **定时任务** — 支持在多个 Rclone 配置间进行定时和手动文件复制、移动和同步操作。包含高级参数、任务停止功能和 Bark 完成通知
-4. **Alist 文件管理** — 内嵌 Alist 管理主打界面，一站式管理所有文件
-5. **日志** — 在线查看 Alist、Rclone、Nginx、API 的运行日志
+4. **openList 文件管理** — 内嵌 openList 管理主打界面，一站式管理所有文件
+5. **日志** — 在线查看 openList、Rclone、Nginx、API 的运行日志
 
 ### 🔌 后端 API 使用指南
 
@@ -289,7 +289,7 @@ Content-Type: application/json
 * `GET /console-api/rclone/remotes` : 枚举所有网盘配置
 * `POST /console-api/tasks/{task_id}/run` : 立即触发执行某个转移任务
 * `POST /console-api/tasks/{task_id}/stop` : 停止正在执行的任务
-* `POST /console-api/service/restart` : 重启 Alist/Rclone 服务 (`{"service": "alist"}`)
+* `POST /console-api/service/restart` : 重启 openList/Rclone 服务 (`{"service": "openlist"}`)
 * `GET /console-api/bark/status` : 查询 Bark 通知配置状态
 *(如果需要更详尽的接口，请查阅容器内的 `server/index.js` 路由定义)*
 
@@ -301,9 +301,9 @@ Content-Type: application/json
 
 ```
 /data
-├── alist/          # Alist 配置和本地 SQLite 数据库
-│   ├── config.json # Alist 配置文件
-│   └── data.db     # Alist 数据库
+├── openlist/          # openList 配置和本地 SQLite 数据库
+│   ├── config.json # openList 配置文件
+│   └── data.db     # openList 数据库
 └── rclone/         # Rclone 配置和缓存
     ├── rclone.conf # Rclone 配置文件
     ├── scheduled-tasks.json # 定时任务配置文件
@@ -324,13 +324,13 @@ Content-Type: application/json
 3. **添加**：点击「添加远程存储」，选择存储类型，填写参数，点击保存
 4. **修改**：点击现有存储卡片上的「编辑」按钮，修改密码及令牌等参数，保存更新
 
-### 在 Alist 中使用 Rclone 存储
+### 在 openList 中使用 Rclone 存储
 
-Rclone 配置好远程存储后，可以在 Alist 中添加存储驱动时选择「本地存储」，挂载路径指向 Rclone 挂载的目录。
+Rclone 配置好远程存储后，可以在 openList 中添加存储驱动时选择「本地存储」，挂载路径指向 Rclone 挂载的目录。
 
-### 直接使用 Alist
+### 直接使用 openList
 
-访问 `/alist/` 路径，使用 `ALIST_ADMIN_USERNAME` / `ALIST_ADMIN_PASSWORD` 登录后即可管理存储。
+访问 `/openlist/` 路径，使用 `OPENLIST_ADMIN_USERNAME` / `OPENLIST_ADMIN_PASSWORD` 登录后即可管理存储。
 
 ---
 
@@ -338,14 +338,14 @@ Rclone 配置好远程存储后，可以在 Alist 中添加存储驱动时选择
 
 | 仓库 | 地址 |
 | --- | --- |
-| GitHub Container Registry | `ghcr.io/workerspages/alist-rclone:main` |
-| Docker Hub | `workerspages/alist-rclone:main` |
+| GitHub Container Registry | `ghcr.io/workerspages/openlist-rclone:main` |
+| Docker Hub | `workerspages/openlist-rclone:main` |
 
 ---
 
 ## ⬆️ 关于版本更新
 
-本项目内置的 `Alist` 和被修改过的 `Rclone` （wiserain版本）都配置为在构建时自动拉取最新的 Release 标签。要将您的环境更新至这两者的最新版本，您只需重新构建或拉取最新的 Docker 镜像。
+本项目内置的 `openList` 和被修改过的 `Rclone` （wiserain版本）都配置为在构建时自动拉取最新的 Release 标签。要将您的环境更新至这两者的最新版本，您只需重新构建或拉取最新的 Docker 镜像。
 
 * **如果您使用 GitHub 仓库 (推荐)**：在 GitHub 上的 `Actions` 页面手动运行一次 `Build and Push Docker Image`，构建出最新镜像后，用 `docker compose pull && docker compose up -d` 重新部署即可。
 * **如果您手动管理版本**：修改代码提交 `git push` 到仓库即可触发自动构建动作。也可直接在服务器执行强制构建：`docker compose build --no-cache && docker compose up -d`。
@@ -355,10 +355,10 @@ Rclone 配置好远程存储后，可以在 Alist 中添加存储驱动时选择
 ## 🔨 本地构建
 
 ```bash
-git clone [https://github.com/workerspages/alist-rclone.git](https://github.com/workerspages/alist-rclone.git)
-cd alist-rclone
-docker build -t alist-rclone .
-docker run -d -p 5000:8080 -v $(pwd)/data:/data alist-rclone
+git clone [https://github.com/workerspages/openlist-rclone.git](https://github.com/workerspages/openlist-rclone.git)
+cd openlist-rclone
+docker build -t openlist-rclone .
+docker run -d -p 5000:8080 -v $(pwd)/data:/data openlist-rclone
 
 ```
 

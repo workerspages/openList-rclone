@@ -1,7 +1,7 @@
 services:
-  alist-rclone:
-    image: ghcr.io/workerspages/alist-rclone:latest
-    container_name: alist-rclone
+  openlist-rclone:
+    image: ghcr.io/workerspages/openlist-rclone:latest
+    container_name: openlist-rclone
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -16,9 +16,9 @@ services:
       - WEB_USERNAME=admin
       - WEB_PASSWORD=admin
       
-      # Alist 管理员凭据
-      - ALIST_ADMIN_USERNAME=admin
-      - ALIST_ADMIN_PASSWORD=admin
+      # openList 管理员凭据
+      - OPENLIST_ADMIN_USERNAME=admin
+      - OPENLIST_ADMIN_PASSWORD=admin
       
       # 高级变量 (PaaS 无状态环境自动备份配置)
       # 方式一：结构化配置（推荐）
@@ -28,7 +28,7 @@ services:
       # - S3_SECRET_KEY=your_sk
       # - S3_BUCKET=your_bucket
       # - S3_REGION=auto
-      # - S3_PATH=alist-rclone
+      # - S3_PATH=openlist-rclone
       
       # 方式二：标准网址格式或底层语法（与方式一二选一即可）
       # - SYNC_DEST=s3://AK:SK@xxx.r2.cloudflarestorage.com/bucket

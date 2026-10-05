@@ -1,10 +1,10 @@
 /* ========================================
-   Alist-Rclone Web Console — App Logic
+   openList-Rclone Web Console — App Logic
    ======================================== */
 const App = {
     token: null,
     currentPage: 'dashboard',
-    currentLogService: 'alist',
+    currentLogService: 'openlist',
     statusInterval: null,
     liveStatusInterval: null,
     remotesList: [],
@@ -155,7 +155,7 @@ const App = {
             dashboard: '仪表板',
             'rclone-config': 'Rclone 配置管理',
             transfer: '定时任务',
-            alist: 'Alist 文件管理',
+            openlist: 'openList 文件管理',
             'live-status': '实时状态',
             'rclone-gui': 'Rclone Web GUI',
             logs: '日志查看器',
@@ -172,7 +172,7 @@ const App = {
         if (page === 'dashboard') this.loadDashboard();
         if (page === 'rclone-config') this.loadRemotes();
         if (page === 'transfer') this.loadTasksPage();
-        if (page === 'alist') this.loadAlistFrame();
+        if (page === 'openlist') this.loadopenListFrame();
         if (page === 'live-status') this.loadLiveStatus();
 
         if (page === 'logs') this.loadLogs(this.currentLogService);
@@ -211,10 +211,10 @@ const App = {
     async loadStatus() {
         try {
             const data = await this.api('GET', '/console-api/status');
-            // Alist status
-            const alistStatus = document.querySelector('#stat-alist .stat-status');
-            alistStatus.textContent = data.alist === 'running' ? '运行中' : '已停止';
-            alistStatus.className = 'stat-status ' + (data.alist === 'running' ? 'running' : 'stopped');
+            // openList status
+            const openlistStatus = document.querySelector('#stat-openlist .stat-status');
+            openlistStatus.textContent = data.openlist === 'running' ? '运行中' : '已停止';
+            openlistStatus.className = 'stat-status ' + (data.openlist === 'running' ? 'running' : 'stopped');
             // Rclone status
             const rcloneStatus = document.querySelector('#stat-rclone .stat-status');
             rcloneStatus.textContent = data.rclone === 'running' ? '运行中' : '已停止';
@@ -654,8 +654,8 @@ const App = {
     // ========================
     // Iframe Pages
     // ========================
-    loadAlistFrame() {
-        const frame = document.getElementById('alist-frame');
+    loadopenListFrame() {
+        const frame = document.getElementById('openlist-frame');
         if (!frame.src || frame.src === window.location.href) {
             frame.src = '/';
         }
